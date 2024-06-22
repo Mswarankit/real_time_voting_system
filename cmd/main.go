@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 
 	"real_time_voting_system/internal/auth"
@@ -15,6 +16,9 @@ import (
 func main() {
 	// Initialize Redis
 	redisClient := storage.NewRedisClient()
+	if redisClient == nil {
+		log.Fatalf("failed to initialize Redis client")
+	}
 
 	// Initialize gRPC server
 	grpcServer := grpc.NewServer()
