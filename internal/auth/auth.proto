@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-package auth;
+package proto;
 
-service AuthService {
+option go_package = "./proto";
+
+service AuthServiceP {
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc Logout (LogoutRequest) returns (LogoutResponse);
