@@ -22,8 +22,6 @@ func main() {
 	grpcServer := grpc.NewServer()
 	authService := auth.NewAuthServiceServer(redisClient)
 	pb.RegisterAuthServiceServer(grpcServer, authService)
-	// Register the AuthService with the gRPC server
-	// auth.RegisterAuthServiceServer(grpcServer, authService)
 	reflection.Register(grpcServer)
 
 	// Start the gRPC server in a separate goroutine
@@ -39,7 +37,7 @@ func main() {
 	}()
 
 	// Initialize WebSocket hub
-	hub := websocket.NewHub()
+	hub := websocket.NewHub(redisClient)
 	go hub.Run()
 
 	// Handle WebSocket connections

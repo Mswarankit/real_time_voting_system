@@ -43,6 +43,11 @@ func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*p
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error generating token")
 	}
+	// Store the token in Redis
+	err = s.redisClient.SetToken(req.Username, token)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error storing token in Redis")
+	}
 	return &pb.LoginResponse{Token: token}, nil
 }
 
@@ -54,7 +59,7 @@ func (s *AuthServiceServer) Logout(ctx context.Context, req *pb.LogoutRequest) (
 func generateJWT(username string) (string, error) {
 	claims := &jwt.RegisteredClaims{
 		Subject:   username,
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(5 * time.Minute)),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
