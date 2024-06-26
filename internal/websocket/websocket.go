@@ -85,7 +85,7 @@ func (c *Client) readPump(h *Hub) {
 			continue
 		}
 		h.votes[vote.Option]++
-		h.broadcastVoteCount()
+		h.broadcastTotalVoteCount()
 	}
 }
 
@@ -99,17 +99,26 @@ func (c *Client) writePump() {
 	}
 }
 
-// sends each clients current vote counts
-func (h *Hub) broadcastVoteCount() {
+func (h *Hub) broadcastTotalVoteCount() {
+	totalVotes := make(map[string]int)
+	for option, count := range h.votes {
+		totalVotes[option] += count
+	}
+
+	// Marshal the total vote counts into JSON
+	message, err := json.Marshal(totalVotes)
+	if err != nil {
+		fmt.Println("Error marshalling total vote count:", err)
+		return
+	}
+
+	// Broadcast the total vote counts to all connected clients
 	for client := range h.clients {
-		for option, count := range h.votes {
-			voteCount := VoteCount{Option: option, Count: count}
-			message, err := json.Marshal(voteCount)
-			if err != nil {
-				fmt.Println("Error marshalling vote count:", err)
-				continue
-			}
-			client.send <- message
+		select {
+		case client.send <- message:
+		default:
+			close(client.send)
+			delete(h.clients, client)
 		}
 	}
 }

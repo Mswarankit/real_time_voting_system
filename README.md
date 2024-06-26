@@ -18,3 +18,14 @@ real_time_voting_system/
 -- redis file have necessary connection related items
 -- websocket will work with voters and taking exact identity.
 
+
+ws://localhost:8080/ws
+
+grpc://localhost:50051
+{
+  "username": "testuser2",
+  "password": "testpassword2"
+}
+{
+    "option": "Option4"
+}
