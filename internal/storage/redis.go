@@ -20,18 +20,20 @@ func NewRedisClient() *RedisClient {
 	return &RedisClient{client: rdb}
 }
 
-func (r *RedisClient) Set(key string, value interface{}) error {
-	err := r.client.Set(ctx, key, value, 0).Err()
+func (r *RedisClient) SetUser(username, password string) error {
+	err := r.client.HSet(ctx, "user:"+username, "password", password).Err()
 	if err != nil {
-		return fmt.Errorf("failed to set key %s: %v", key, err)
+		return fmt.Errorf("failed to set user %s: %v", username, err)
 	}
 	return nil
 }
 
-func (r *RedisClient) Get(key string) (string, error) {
-	val, err := r.client.Get(ctx, key).Result()
-	if err != nil {
-		return "", fmt.Errorf("failed to get key %s: %v", key, err)
+func (r *RedisClient) GetUser(username string) (string, error) {
+	password, err := r.client.HGet(ctx, "user:"+username, "password").Result()
+	if err == redis.Nil {
+		return "", fmt.Errorf("user %s does not exist", username)
+	} else if err != nil {
+		return "", fmt.Errorf("failed to get user %s: %v", username, err)
 	}
-	return val, nil
+	return password, nil
 }

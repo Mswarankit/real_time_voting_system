@@ -89,19 +89,17 @@ func (c *Client) readPump(h *Hub) {
 	}
 }
 
+// writePump() continuously listens messages
 func (c *Client) writePump() {
-	for {
-		select {
-		case message, ok := <-c.send:
-			if !ok {
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-			c.conn.WriteMessage(websocket.TextMessage, message)
+	for message := range c.send {
+		if err := c.conn.WriteMessage(websocket.TextMessage, message); err != nil {
+			break
 		}
+		c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 	}
 }
 
+// sends each clients current vote counts
 func (h *Hub) broadcastVoteCount() {
 	for client := range h.clients {
 		for option, count := range h.votes {

@@ -16,16 +16,16 @@ import (
 func main() {
 	// Initialize Redis
 	redisClient := storage.NewRedisClient()
-	if redisClient == nil {
-		log.Fatalf("failed to initialize Redis client")
-	}
 
 	// Initialize gRPC server
 	grpcServer := grpc.NewServer()
-	authService := auth.NewAuthServiceServer()
-	auth.RegisterAuthServiceServer(grpcServer, authService)
+	authService := auth.NewAuthServiceServer(redisClient)
+
+	// Register the AuthService with the gRPC server
+	auth.RegisterAuthServicePServer(grpcServer, authService)
 	reflection.Register(grpcServer)
 
+	// Start the gRPC server in a separate goroutine
 	go func() {
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {
@@ -41,10 +41,12 @@ func main() {
 	hub := websocket.NewHub()
 	go hub.Run()
 
+	// Handle WebSocket connections
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		websocket.ServeWs(hub, w, r)
 	})
 
+	// Start the HTTP server
 	log.Println("HTTP server listening on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatalf("failed to serve: %v", err)

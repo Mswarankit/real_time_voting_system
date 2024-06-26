@@ -1,11 +1,12 @@
-
 package auth
 
 import (
 	"context"
 	"time"
-	
+
 	pb "real_time_voting_system/internal/auth/proto"
+	"real_time_voting_system/internal/storage"
+
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,28 +16,32 @@ var jwtKey = []byte("my_secret_key")
 
 type AuthServiceServer struct {
 	// UnimplementedAuthServiceServer
-	users map[string]string
+	redisClient *storage.RedisClient
 }
 
-func NewAuthServiceServer() *AuthServiceServer {
-	return &AuthServiceServer{users: make(map[string]string)}
+func NewAuthServiceServer(redisClient *storage.RedisClient) *AuthServiceServer {
+	return &AuthServiceServer{redisClient: redisClient}
 }
 
 func (s *AuthServiceServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	if _, exists := s.users[req.Username]; exists {
-		return nil, status.Errorf(codes.AlreadyExists, "User already exists")
+	err := s.redisClient.SetUser(req.Username, req.Password)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to register user: %v", err)
 	}
-	s.users[req.Username] = req.Password
 	return &pb.RegisterResponse{Message: "User registered successfully"}, nil
 }
 
 func (s *AuthServiceServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	if password, exists := s.users[req.Username]; !exists || password != req.Password {
-		return nil, status.Errorf(codes.Unauthenticated, "Invalid credentials")
+	password, err := s.redisClient.GetUser(req.Username)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "invalid credentials: %v", err)
+	}
+	if password != req.Password {
+		return nil, status.Errorf(codes.Unauthenticated, "invalid credentials")
 	}
 	token, err := generateJWT(req.Username)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Error generating token")
+		return nil, status.Errorf(codes.Internal, "error generating token")
 	}
 	return &pb.LoginResponse{Token: token}, nil
 }
