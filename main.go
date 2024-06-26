@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"real_time_voting_system/internal/auth"
+	pb "real_time_voting_system/internal/auth/proto"
 	"real_time_voting_system/internal/storage"
 	"real_time_voting_system/internal/websocket"
 
@@ -20,9 +21,9 @@ func main() {
 	// Initialize gRPC server
 	grpcServer := grpc.NewServer()
 	authService := auth.NewAuthServiceServer(redisClient)
-
+	pb.RegisterAuthServiceServer(grpcServer, authService)
 	// Register the AuthService with the gRPC server
-	auth.RegisterAuthServicePServer(grpcServer, authService)
+	// auth.RegisterAuthServiceServer(grpcServer, authService)
 	reflection.Register(grpcServer)
 
 	// Start the gRPC server in a separate goroutine

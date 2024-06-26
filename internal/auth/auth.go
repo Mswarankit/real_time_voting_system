@@ -15,7 +15,7 @@ import (
 var jwtKey = []byte("my_secret_key")
 
 type AuthServiceServer struct {
-	// UnimplementedAuthServiceServer
+	pb.UnimplementedAuthServiceServer
 	redisClient *storage.RedisClient
 }
 

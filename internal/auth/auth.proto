@@ -4,7 +4,7 @@ package proto;
 
 option go_package = "./proto";
 
-service AuthServiceP {
+service AuthService {
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc Logout (LogoutRequest) returns (LogoutResponse);
