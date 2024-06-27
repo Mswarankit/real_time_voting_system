@@ -27,8 +27,9 @@ type VoteCount struct {
 }
 
 type Client struct {
-	conn *websocket.Conn
-	send chan []byte
+	conn     *websocket.Conn
+	send     chan []byte
+	username string
 }
 
 type Hub struct {
@@ -37,6 +38,7 @@ type Hub struct {
 	register    chan *Client
 	unregister  chan *Client
 	redisClient *storage.RedisClient
+	votes       map[string]int
 }
 
 func NewHub(redisClient *storage.RedisClient) *Hub {
@@ -46,6 +48,7 @@ func NewHub(redisClient *storage.RedisClient) *Hub {
 		register:    make(chan *Client),
 		unregister:  make(chan *Client),
 		redisClient: redisClient,
+		votes:       make(map[string]int),
 	}
 }
 
@@ -89,7 +92,7 @@ func (c *Client) readPump(h *Hub) {
 		}
 
 		// Check if the user has already voted
-		hasVoted, err := h.redisClient.HasVoted(vote.Option)
+		hasVoted, err := h.redisClient.HasVoted(c.username)
 		if err != nil {
 			fmt.Println("Error checking vote status:", err)
 			continue
@@ -110,20 +113,14 @@ func (c *Client) readPump(h *Hub) {
 		}
 
 		// Set the user as having voted
-		if err := h.redisClient.SetVote(vote.Option); err != nil {
+		if err := h.redisClient.SetVote(c.username); err != nil {
 			fmt.Println("Error setting vote status:", err)
 			continue
 		}
 
 		// Increment the vote count
-		totalVotes, err := h.redisClient.IncrementVoteCount()
-		if err != nil {
-			fmt.Println("Error incrementing vote count:", err)
-			continue
-		}
-
-		// Broadcast the total vote count
-		h.broadcastTotalVoteCount(totalVotes)
+		h.votes[vote.Option]++
+		h.broadcastVoteCounts()
 	}
 }
 
@@ -160,19 +157,39 @@ func (c *Client) writePump() {
 	}
 }
 
-func (h *Hub) broadcastTotalVoteCount(totalVotes int64) {
-	totalVotesMessage := struct {
-		TotalVotes int64 `json:"total_votes"`
+func (h *Hub) broadcastVoteCounts() {
+	totalVotes := make(map[string]int)
+	for option, count := range h.votes {
+		totalVotes[option] = count
+	}
+
+	// Determine the winner
+	var winner string
+	var maxVotes int
+	for option, count := range totalVotes {
+		if count > maxVotes {
+			winner = option
+			maxVotes = count
+		}
+	}
+
+	// Create the message with total votes and the winner
+	messageData := struct {
+		TotalVotes map[string]int `json:"total_votes"`
+		Winner     string         `json:"winner"`
 	}{
 		TotalVotes: totalVotes,
+		Winner:     winner,
 	}
-	message, err := json.Marshal(totalVotesMessage)
+
+	// Marshal the total vote counts and winner into JSON
+	message, err := json.Marshal(messageData)
 	if err != nil {
 		fmt.Println("Error marshalling total vote count:", err)
 		return
 	}
 
-	// Broadcast the total vote counts to all connected clients
+	// Broadcast the total vote counts and winner to all connected clients
 	for client := range h.clients {
 		select {
 		case client.send <- message:
@@ -211,7 +228,7 @@ func ServeWs(h *Hub, w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	client := &Client{conn: conn, send: make(chan []byte, 256)}
+	client := &Client{conn: conn, send: make(chan []byte, 256), username: username}
 	h.register <- client
 
 	go client.writePump()
