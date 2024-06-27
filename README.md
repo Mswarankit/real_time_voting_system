@@ -37,4 +37,4 @@ WebSockets Endpoints
 
 
 ### Inputs and Outputs are stored in image format
-testing_outputs ![alt text](./testing_outputs/register_user1.png) ![alt text](./testing_outputs/login_user1.png) ![alt text](./testing_outputs/websockets_without_jwt.png) ![alt text](./testing_outputs/websocketsgetsconnecteduser1.png) ![alt text](./testing_outputs/websocketswithuser1JWTtokens.png) ![alt text](loginuser2.png)  ![alt text](Login_user3.png) ![alt text](Results_user1.png) ![alt text](Resultsuser2.png) ![alt text](Results_user3.png)
+testing_outputs ![alt text](./testing_outputs/register_user1.png) ![alt text](./testing_outputs/login_user1.png) ![alt text](./testing_outputs/websockets_without_jwt.png) ![alt text](./testing_outputs/websocketsgetsconnecteduser1.png) ![alt text](./testing_outputs/websocketswithuser1JWTtokens.png) ![alt text](./testing_outputs/loginuser2.png)  ![alt text](./testing_outputs/Login_user3.png) ![alt text](./testing_outputs/Results_user1.png) ![alt text](./testing_outputs/Resultsuser2.png) ![alt text](./testing_outputs/Results_user3.png)
