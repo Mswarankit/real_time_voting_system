@@ -13,25 +13,6 @@ To build a real-time collaborative voting system backend that allows multiple us
 - go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 - export PATH=$PATH:$(go env GOPATH)/bin
 
-### Structure of project
-
-|-- Dockerfile
-|-- README.md
-|-- go.mod
-|-- go.sum
-|-- internal
-|   |-- auth
-|   |   |-- auth.go
-|   |   |-- auth.proto
-|   |   `-- proto
-|   |       |-- auth.pb.go
-|   |       `-- auth_grpc.pb.go
-|   |-- storage
-|   |   `-- redis.go
-|   `-- websocket
-|       `-- websocket.go
-|-- main.go
-`-- testing_outputs
 
 ### Feature
 - User registration and authentication using gRPC and JWT.
@@ -56,4 +37,4 @@ WebSockets Endpoints
 
 
 ### Inputs and Outputs are stored in image format
-testing_outputs ![alt text](login_user1.png) ![alt text](loginuser2.png) ![alt text](register_user1.png) ![alt text](Results_user1.png) ![alt text](Resultsuser2.png) ![alt text](Results_user3.png) ![alt text](Login_user3.png) ![alt text](websocketsgetsconnecteduser1.png) ![alt text](websockets_without_jwt.png) ![alt text](websocketswithuser1JWTtokens.png)
+testing_outputs ![alt text](./testing_outputs/register_user1.png) ![alt text](./testing_outputs/login_user1.png) ![alt text](./testing_outputs/websockets_without_jwt.png) ![alt text](./testing_outputs/websocketsgetsconnecteduser1.png) ![alt text](./testing_outputs/websocketswithuser1JWTtokens.png) ![alt text](loginuser2.png)  ![alt text](Login_user3.png) ![alt text](Results_user1.png) ![alt text](Resultsuser2.png) ![alt text](Results_user3.png)
